@@ -1,6 +1,7 @@
 name: Materialize Android project
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
@@ -10,7 +11,7 @@ permissions:
 
 jobs:
   materialize:
-    if: github.head_ref == 'agent/vibe-camera'
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'agent/vibe-camera'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
