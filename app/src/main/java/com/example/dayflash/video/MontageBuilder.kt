@@ -19,7 +19,6 @@ import kotlin.coroutines.resume
 
 @UnstableApi
 object MontageBuilder {
-    @Suppress("DEPRECATION")
     suspend fun build(context: Context, inputs: List<File>, output: File): Boolean =
         withContext(Dispatchers.Main.immediate) {
             val validInputs = inputs
@@ -32,19 +31,17 @@ object MontageBuilder {
             output.delete()
 
             suspendCancellableCoroutine { continuation ->
-                val items = validInputs.map { file ->
+                val items: List<EditedMediaItem> = validInputs.map { file ->
                     EditedMediaItem.Builder(
                         MediaItem.fromUri(Uri.fromFile(file))
                     ).build()
                 }
 
-                // A real Media3 timeline. Every clip is decoded and encoded into one
-                // consistent stream, so timestamps and codec settings cannot freeze
-                // after the first CameraX MP4 file.
-                val sequence = EditedMediaItemSequence.Builder(items)
-                    .experimentalSetForceAudioTrack(true)
-                    .build()
-                val composition = Composition.Builder(sequence).build()
+                // Media3 1.6.1 creates a real sequential timeline and transcodes
+                // all CameraX clips into one consistent H.264/AAC stream.
+                val sequence: EditedMediaItemSequence =
+                    EditedMediaItemSequence.Builder(items).build()
+                val composition: Composition = Composition.Builder(sequence).build()
 
                 lateinit var transformer: Transformer
                 val listener = object : Transformer.Listener {
@@ -74,9 +71,9 @@ object MontageBuilder {
                     output.delete()
                 }
 
-                runCatching {
+                try {
                     transformer.start(composition, output.absolutePath)
-                }.onFailure {
+                } catch (_: Throwable) {
                     output.delete()
                     if (continuation.isActive) continuation.resume(false)
                 }
