@@ -1,17 +1,16 @@
 name: Materialize Android project
 
 on:
-  push:
-    branches: [agent/vibe-camera]
-    paths:
-      - project.part.*
-      - .github/workflows/materialize-project.yml
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
 
 jobs:
   materialize:
+    if: github.head_ref == 'agent/vibe-camera'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,7 +20,7 @@ jobs:
       - name: Expand project archive
         shell: bash
         run: |
-          test -f project.part.06 || exit 0
+          test -f project.part.06 || exit 1
           cat project.part.* | base64 -d > /tmp/historyday.zip
           rm -f project.part.*
           unzip -o /tmp/historyday.zip -d .
@@ -29,7 +28,7 @@ jobs:
       - name: Commit source tree
         shell: bash
         run: |
-          test -f app/build.gradle.kts || exit 0
+          test -f app/build.gradle.kts || exit 1
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
