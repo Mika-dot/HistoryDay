@@ -39,8 +39,10 @@ HistoryDay — Android-приложение, которое несколько �
 - CameraX 1.4.1;
 - Room 2.6.1;
 - WorkManager 2.10.0;
-- Media3 Transformer / Effect 1.10.1;
+- Media3 Transformer / Effect 1.6.1;
 - Material 3.
+
+Media3 зафиксирован на `1.6.1`, потому что проект собирается с `compileSdk 35` и Android Gradle Plugin 8.7.3. Более новые ветки Media3, требующие API 36, нужно подключать только вместе с обновлением Android Gradle Plugin и `compileSdk`.
 
 ## Скачать проект
 
