@@ -7,21 +7,21 @@ Set-StrictMode -Version Latest
 
 function Fail([string]$Message) {
     Write-Host ""
-    Write-Host "ОШИБКА: $Message" -ForegroundColor Red
+    Write-Host "ERROR: $Message" -ForegroundColor Red
     exit 1
 }
 
 $ProjectDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $ProjectDir
 
-Write-Host "=== DayFlash: сборка Android APK ===" -ForegroundColor Cyan
-Write-Host "Проект: $ProjectDir"
+Write-Host "=== HistoryDay Android APK build ===" -ForegroundColor Cyan
+Write-Host "Project: $ProjectDir"
 
 if (-not (Test-Path ".\settings.gradle.kts") -or -not (Test-Path ".\app\build.gradle.kts")) {
-    Fail "Скрипт должен лежать в корне проекта DayFlash, рядом с settings.gradle.kts."
+    Fail "Place this script in the project root next to settings.gradle.kts."
 }
 
-# Android SDK
+# Locate Android SDK.
 $sdkCandidates = @(
     @(
         $env:ANDROID_HOME,
@@ -31,7 +31,7 @@ $sdkCandidates = @(
 )
 
 if ($sdkCandidates.Count -eq 0) {
-    Fail "Android SDK не найден. Ожидаемый путь: $env:LOCALAPPDATA\Android\Sdk"
+    Fail "Android SDK was not found. Expected path: $env:LOCALAPPDATA\Android\Sdk"
 }
 
 $Sdk = [System.IO.Path]::GetFullPath($sdkCandidates[0])
@@ -43,15 +43,15 @@ Write-Host "Android SDK: $Sdk" -ForegroundColor Green
 
 if (-not (Test-Path "$Sdk\platforms\android-35\android.jar")) {
     Write-Host ""
-    Write-Host "Установленные платформы SDK:" -ForegroundColor Yellow
+    Write-Host "Installed SDK platforms:" -ForegroundColor Yellow
     Get-ChildItem "$Sdk\platforms" -Directory -ErrorAction SilentlyContinue |
         Select-Object -ExpandProperty Name |
         ForEach-Object { Write-Host "  $_" }
 
-    Fail "Не найден Android SDK Platform 35. Установите Android 15 / API 35 через Android Studio -> SDK Manager."
+    Fail "Android SDK Platform 35 is missing. Install Android 15 / API 35 in Android Studio SDK Manager."
 }
 
-# JDK 17
+# Locate JDK 17.
 $javaHomeCandidates = New-Object System.Collections.Generic.List[string]
 
 if ($env:JAVA_HOME) {
@@ -60,9 +60,8 @@ if ($env:JAVA_HOME) {
 
 $javaCommand = Get-Command java.exe -ErrorAction SilentlyContinue
 if ($javaCommand) {
-    $javaHomeCandidates.Add(
-        (Split-Path (Split-Path $javaCommand.Source -Parent) -Parent)
-    )
+    $detectedJavaHome = Split-Path (Split-Path $javaCommand.Source -Parent) -Parent
+    $javaHomeCandidates.Add($detectedJavaHome)
 }
 
 Get-ChildItem "C:\Program Files\Eclipse Adoptium" -Directory -Filter "jdk-17*" -ErrorAction SilentlyContinue |
@@ -99,8 +98,9 @@ foreach ($candidate in ($javaHomeCandidates | Select-Object -Unique)) {
     $process.WaitForExit()
 
     $candidateVersion = ($stdout + [Environment]::NewLine + $stderr).Trim()
+    $isJava17 = $candidateVersion.Contains('version "17.') -or $candidateVersion.Contains('version "17"')
 
-    if ($process.ExitCode -eq 0 -and $candidateVersion -match 'version\s+"17(?:\.|")') {
+    if (($process.ExitCode -eq 0) -and $isJava17) {
         $env:JAVA_HOME = [System.IO.Path]::GetFullPath($candidate)
         $JavaExe = $candidateJava
         $javaVersionText = $candidateVersion
@@ -109,22 +109,22 @@ foreach ($candidate in ($javaHomeCandidates | Select-Object -Unique)) {
 }
 
 if (-not $JavaExe) {
-    Fail "JDK 17 не найден. У вас должен быть установлен Eclipse Temurin JDK 17."
+    Fail "JDK 17 was not found. Install Eclipse Temurin JDK 17 or set JAVA_HOME."
 }
 
 $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 
 Write-Host "JAVA_HOME: $env:JAVA_HOME" -ForegroundColor Green
-Write-Host $javaVersionText.Trim()
+Write-Host $javaVersionText
 
-# local.properties — используем прямые слэши, чтобы не экранировать Windows-путь.
+# Create local.properties using forward slashes.
 $sdkForProperties = $Sdk.Replace("\", "/")
 "sdk.dir=$sdkForProperties" | Set-Content ".\local.properties" -Encoding ASCII
-Write-Host "Создан local.properties" -ForegroundColor Green
+Write-Host "Created local.properties" -ForegroundColor Green
 
-# В исходном архиве wrapper отсутствует. Один раз загружаем Gradle 8.9 и создаём его.
+# Bootstrap Gradle Wrapper when the repository was freshly cloned.
 if (-not (Test-Path ".\gradlew.bat")) {
-    $BootstrapRoot = Join-Path $env:LOCALAPPDATA "DayFlashBuild"
+    $BootstrapRoot = Join-Path $env:LOCALAPPDATA "HistoryDayBuild"
     $GradleHome = Join-Path $BootstrapRoot "gradle-8.9"
     $GradleBat = Join-Path $GradleHome "bin\gradle.bat"
     $GradleZip = Join-Path $BootstrapRoot "gradle-8.9-bin.zip"
@@ -132,7 +132,7 @@ if (-not (Test-Path ".\gradlew.bat")) {
     New-Item -ItemType Directory -Force -Path $BootstrapRoot | Out-Null
 
     if (-not (Test-Path $GradleBat)) {
-        Write-Host "Загрузка Gradle 8.9..." -ForegroundColor Yellow
+        Write-Host "Downloading Gradle 8.9..." -ForegroundColor Yellow
 
         if (Test-Path $GradleZip) {
             Remove-Item $GradleZip -Force
@@ -143,7 +143,7 @@ if (-not (Test-Path ".\gradlew.bat")) {
             -OutFile $GradleZip `
             -UseBasicParsing
 
-        Write-Host "Распаковка Gradle..." -ForegroundColor Yellow
+        Write-Host "Extracting Gradle..." -ForegroundColor Yellow
         if (Test-Path $GradleHome) {
             Remove-Item $GradleHome -Recurse -Force
         }
@@ -151,49 +151,49 @@ if (-not (Test-Path ".\gradlew.bat")) {
     }
 
     if (-not (Test-Path $GradleBat)) {
-        Fail "Gradle 8.9 не удалось загрузить или распаковать."
+        Fail "Gradle 8.9 could not be downloaded or extracted."
     }
 
-    Write-Host "Создание Gradle Wrapper..." -ForegroundColor Yellow
+    Write-Host "Creating Gradle Wrapper..." -ForegroundColor Yellow
     & $GradleBat wrapper --gradle-version 8.9 --distribution-type bin
     if ($LASTEXITCODE -ne 0) {
-        Fail "Не удалось создать Gradle Wrapper."
+        Fail "Gradle Wrapper creation failed."
     }
 }
 
 Write-Host ""
-Write-Host "Сборка debug APK..." -ForegroundColor Cyan
+Write-Host "Building debug APK..." -ForegroundColor Cyan
 & ".\gradlew.bat" clean assembleDebug --stacktrace
 
 if ($LASTEXITCODE -ne 0) {
-    Fail "Gradle завершил сборку с ошибкой. Скопируйте весь красный текст консоли."
+    Fail "Gradle build failed. Copy the complete error output from the console."
 }
 
 $Apk = Join-Path $ProjectDir "app\build\outputs\apk\debug\app-debug.apk"
 if (-not (Test-Path $Apk)) {
-    Fail "Сборка завершилась, но APK не найден по ожидаемому пути: $Apk"
+    Fail "Build completed but APK was not found at: $Apk"
 }
 
 Write-Host ""
-Write-Host "ГОТОВО" -ForegroundColor Green
+Write-Host "BUILD SUCCESSFUL" -ForegroundColor Green
 Write-Host "APK: $Apk" -ForegroundColor Green
 
 if ($Install) {
     $Adb = Join-Path $Sdk "platform-tools\adb.exe"
     if (-not (Test-Path $Adb)) {
-        Fail "adb.exe не найден в Android SDK."
+        Fail "adb.exe was not found in Android SDK."
     }
 
     Write-Host ""
-    Write-Host "Подключённые устройства:" -ForegroundColor Cyan
+    Write-Host "Connected devices:" -ForegroundColor Cyan
     & $Adb devices
 
-    Write-Host "Установка APK..." -ForegroundColor Cyan
+    Write-Host "Installing APK..." -ForegroundColor Cyan
     & $Adb install -r $Apk
 
     if ($LASTEXITCODE -ne 0) {
-        Fail "APK собран, но установить его на телефон не удалось."
+        Fail "APK was built but installation failed."
     }
 
-    Write-Host "DayFlash установлен на телефон." -ForegroundColor Green
+    Write-Host "HistoryDay was installed on the phone." -ForegroundColor Green
 }
