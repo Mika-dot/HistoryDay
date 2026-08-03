@@ -4,7 +4,7 @@ on:
   push:
     branches: [agent/vibe-camera]
     paths:
-      - project.zip.b64
+      - project.part.*
       - .github/workflows/materialize-project.yml
 
 permissions:
@@ -21,12 +21,12 @@ jobs:
       - name: Expand project archive
         shell: bash
         run: |
-          if [ ! -f project.zip.b64 ]; then
-            echo "Archive not uploaded yet"
+          if [ ! -f project.part.06 ]; then
+            echo "Waiting for the final archive part"
             exit 0
           fi
-          base64 -d project.zip.b64 > /tmp/historyday.zip
-          rm -f project.zip.b64
+          cat project.part.* | base64 -d > /tmp/historyday.zip
+          rm -f project.part.*
           unzip -o /tmp/historyday.zip -d .
           rm -f .github/workflows/materialize-project.yml
       - name: Commit source tree
