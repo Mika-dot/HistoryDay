@@ -10,6 +10,7 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.MirrorMode
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.FallbackStrategy
 import androidx.camera.video.FileOutputOptions
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
@@ -36,7 +37,6 @@ class CaptureActivity : ComponentActivity() {
     private var countdown: CountDownTimer? = null
     private var started = false
     private var switchingCamera = false
-    private var activeFile: File? = null
     private var lensFacing = CameraSelector.LENS_FACING_FRONT
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,11 +79,16 @@ class CaptureActivity : ComponentActivity() {
             CameraSelector.DEFAULT_BACK_CAMERA
         }
 
-        val preview = Preview.Builder().build()
-            .also { it.setSurfaceProvider(binding.previewView.surfaceProvider) }
+        val preview = Preview.Builder().build().also {
+            it.setSurfaceProvider(binding.previewView.surfaceProvider)
+        }
 
+        val qualitySelector = QualitySelector.fromOrderedList(
+            listOf(Quality.FHD, Quality.HD, Quality.SD),
+            FallbackStrategy.lowerQualityOrHigherThan(Quality.FHD),
+        )
         val recorder = Recorder.Builder()
-            .setQualitySelector(QualitySelector.from(Quality.HD))
+            .setQualitySelector(qualitySelector)
             .build()
 
         val capture = VideoCapture.Builder(recorder)
@@ -106,7 +111,6 @@ class CaptureActivity : ComponentActivity() {
         val day = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
         val dir = File(filesDir, "videos/clips/$day").apply { mkdirs() }
         val file = File(dir, "${System.currentTimeMillis()}.mp4")
-        activeFile = file
 
         var pending = capture.output.prepareRecording(this, FileOutputOptions.Builder(file).build())
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
@@ -150,7 +154,7 @@ class CaptureActivity : ComponentActivity() {
             return
         }
 
-        if (!event.hasError() && file.exists() && file.length() > 0) {
+        if (!event.hasError() && file.exists() && file.length() > 0L) {
             lifecycleScope.launch(Dispatchers.IO) {
                 AppDatabase.get(this@CaptureActivity).clipDao().insert(
                     ClipEntity(
@@ -205,8 +209,8 @@ class CaptureActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_AUTO_RECORD = "auto_record"
-        private const val CAMERA_WARMUP_MS = 550L
+        private const val CAMERA_WARMUP_MS = 650L
         private const val RECORDING_MS = 2_000L
-        private const val FINISH_DELAY_MS = 180L
+        private const val FINISH_DELAY_MS = 220L
     }
 }

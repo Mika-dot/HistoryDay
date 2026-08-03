@@ -6,6 +6,7 @@
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/background</item>
         <item name="colorSecondary">@color/secondary</item>
+        <item name="colorTertiary">@color/tertiary</item>
         <item name="colorSurface">@color/surface</item>
         <item name="colorOnSurface">@color/text_primary</item>
         <item name="android:windowBackground">@color/background</item>
@@ -25,15 +26,15 @@
     </style>
 
     <style name="Widget.DayFlash.PrimaryButton" parent="Widget.Material3.Button">
-        <item name="android:minHeight">54dp</item>
-        <item name="cornerRadius">18dp</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="cornerRadius">17dp</item>
         <item name="android:textStyle">bold</item>
-        <item name="iconPadding">10dp</item>
+        <item name="iconPadding">9dp</item>
     </style>
 
     <style name="Widget.DayFlash.SecondaryButton" parent="Widget.Material3.Button.OutlinedButton">
-        <item name="android:minHeight">54dp</item>
-        <item name="cornerRadius">18dp</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="cornerRadius">17dp</item>
         <item name="strokeColor">@color/stroke</item>
         <item name="android:textColor">@color/text_primary</item>
     </style>

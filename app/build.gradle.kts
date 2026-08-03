@@ -12,8 +12,8 @@ android {
         applicationId = "com.example.dayflash"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
     }
 
     buildFeatures { viewBinding = true }
@@ -41,11 +41,8 @@ dependencies {
     implementation("androidx.camera:camera-video:$camerax")
     implementation("androidx.camera:camera-view:$camerax")
 
-    // Media3 1.10.x requires compileSdk 36. Keep 1.6.1 while this project uses
-    // Android Gradle Plugin 8.7.3 and compileSdk 35.
     val media3 = "1.6.1"
     implementation("androidx.media3:media3-common:$media3")
-    implementation("androidx.media3:media3-effect:$media3")
     implementation("androidx.media3:media3-transformer:$media3")
 
     val room = "2.6.1"

@@ -9,11 +9,38 @@
     android:paddingTop="18dp"
     android:paddingEnd="18dp">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-black"
+            android:text="@string/app_name"
+            android:textColor="@color/text_primary"
+            android:textSize="28sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/testButton"
+            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:contentDescription="@string/test_capture"
+            app:backgroundTint="@color/surface_high"
+            app:icon="@drawable/ic_camera"
+            app:iconTint="@color/primary" />
+    </LinearLayout>
+
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
         app:cardBackgroundColor="@android:color/transparent"
-        app:cardCornerRadius="30dp"
+        app:cardCornerRadius="28dp"
         app:cardElevation="0dp"
         app:strokeWidth="0dp">
 
@@ -22,40 +49,11 @@
             android:layout_height="wrap_content"
             android:background="@drawable/bg_hero"
             android:orientation="vertical"
-            android:padding="24dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.12"
-                android:text="@string/hero_eyebrow"
-                android:textColor="#DDFFFFFF"
-                android:textSize="11sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:fontFamily="sans-serif-black"
-                android:lineSpacingExtra="-2dp"
-                android:text="@string/hero_title"
-                android:textColor="@color/text_primary"
-                android:textSize="31sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:lineSpacingExtra="2dp"
-                android:text="@string/hero_subtitle"
-                android:textColor="#D9FFFFFF"
-                android:textSize="14sp" />
+            android:padding="20dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -74,25 +72,48 @@
                     android:fontFamily="sans-serif-medium"
                     android:text="@string/status_off"
                     android:textColor="@color/text_primary"
-                    android:textSize="14sp" />
+                    android:textSize="15sp" />
 
                 <TextView
                     android:id="@+id/momentsCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Всего 0 моментов"
-                    android:textColor="#CCFFFFFF"
-                    android:textSize="12sp" />
+                    android:fontFamily="sans-serif-medium"
+                    android:text="0 фрагментов"
+                    android:textColor="#DFFFFFFF"
+                    android:textSize="13sp" />
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/nextReminderText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:fontFamily="sans-serif-black"
+                android:text="@string/random_reminder_window"
+                android:textColor="@color/text_primary"
+                android:textSize="24sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/enableButton"
+                style="@style/Widget.DayFlash.PrimaryButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="@string/enable_reminders"
+                android:textColor="#083344"
+                app:backgroundTint="#E9FCFF"
+                app:icon="@drawable/ic_notification"
+                app:iconTint="#083344" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="12dp"
         app:cardBackgroundColor="@color/surface"
-        app:cardCornerRadius="24dp"
+        app:cardCornerRadius="22dp"
         app:cardElevation="0dp"
         app:strokeColor="@color/stroke"
         app:strokeWidth="1dp">
@@ -100,81 +121,24 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="18dp">
-
-            <TextView
-                android:id="@+id/nextReminderText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:drawablePadding="8dp"
-                android:fontFamily="sans-serif-medium"
-                android:text="@string/random_reminder_window"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp"
-                app:drawableStartCompat="@drawable/ic_sparkles" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:orientation="horizontal">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/enableButton"
-                    style="@style/Widget.DayFlash.PrimaryButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/enable_reminders"
-                    app:backgroundTint="@color/text_primary"
-                    app:icon="@drawable/ic_notification"
-                    app:iconTint="@color/background" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/testButton"
-                    style="@style/Widget.DayFlash.SecondaryButton"
-                    android:layout_width="56dp"
-                    android:layout_height="54dp"
-                    android:layout_marginStart="10dp"
-                    android:contentDescription="@string/test_capture"
-                    android:insetLeft="0dp"
-                    android:insetRight="0dp"
-                    android:text=""
-                    app:icon="@drawable/ic_camera"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:iconTint="@color/text_primary" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="18dp"
-                android:layout_marginBottom="16dp"
-                android:background="@color/stroke" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="14dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-medium"
+                android:layout_marginEnd="14dp"
+                android:fontFamily="sans-serif-bold"
                 android:text="@string/camera_title"
                 android:textColor="@color/text_primary"
                 android:textSize="15sp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:text="@string/camera_subtitle"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
-
             <com.google.android.material.button.MaterialButtonToggleGroup
                 android:id="@+id/cameraToggle"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_weight="1"
                 app:selectionRequired="true"
                 app:singleSelection="true">
 
@@ -182,7 +146,7 @@
                     android:id="@+id/frontButton"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="46dp"
                     android:layout_weight="1"
                     android:text="@string/front_camera"
                     app:icon="@drawable/ic_camera_front"
@@ -193,7 +157,7 @@
                     android:id="@+id/backButton"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="46dp"
                     android:layout_weight="1"
                     android:text="@string/back_camera"
                     app:icon="@drawable/ic_camera_rear"
@@ -207,31 +171,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:gravity="bottom"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <LinearLayout
+        <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-black"
-                android:text="@string/memories_title"
-                android:textColor="@color/text_primary"
-                android:textSize="22sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="@string/memories_subtitle"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
-        </LinearLayout>
+            android:fontFamily="sans-serif-black"
+            android:text="@string/memories_title"
+            android:textColor="@color/text_primary"
+            android:textSize="22sp" />
     </LinearLayout>
 
     <FrameLayout
@@ -252,37 +202,25 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:orientation="vertical"
-            android:padding="28dp">
+            android:orientation="vertical">
 
             <TextView
-                android:layout_width="68dp"
-                android:layout_height="68dp"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
                 android:background="@drawable/bg_empty_icon"
                 android:gravity="center"
-                android:text="✦"
+                android:text="●"
                 android:textColor="@color/primary"
-                android:textSize="30sp" />
+                android:textSize="24sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="14dp"
                 android:fontFamily="sans-serif-bold"
-                android:gravity="center"
                 android:text="@string/empty_title"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center"
-                android:lineSpacingExtra="2dp"
-                android:text="@string/empty_subtitle"
                 android:textColor="@color/text_secondary"
-                android:textSize="13sp" />
+                android:textSize="16sp" />
         </LinearLayout>
     </FrameLayout>
 </LinearLayout>
