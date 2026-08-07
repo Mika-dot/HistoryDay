@@ -95,7 +95,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestPermissionsAndEnable() {
-        val list = mutableListOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
+        val list = mutableListOf(
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        )
         if (Build.VERSION.SDK_INT >= 33) list += Manifest.permission.POST_NOTIFICATIONS
         permissions.launch(list.toTypedArray())
     }
