@@ -31,6 +31,16 @@
     <string name="notification_channel_description">Напоминания о короткой записи</string>
     <string name="notification_title">Снять 2 секунды</string>
     <string name="notification_text">Нажмите, чтобы начать запись</string>
+    <string name="map_title">Точки дня</string>
+    <string name="map_empty">У этого дня пока нет геометок. Новые моменты сохраняют точку съёмки, если доступ к геолокации разрешён.</string>
+    <string name="timeline_title">Как прошёл день</string>
+    <string name="timeline_hint">Нажмите на момент, чтобы посмотреть именно этот фрагмент.</string>
+    <string name="map_point">Точка на карте</string>
+    <string name="map_point_number">Точка %1$d</string>
+    <string name="no_location">Без геометки</string>
+    <string name="location_not_saved">Место не сохранено</string>
+    <string name="day_summary">%1$d моментов · %2$d мест · %3$d с геометкой</string>
+    <string name="day_summary_empty">История дня</string>
 
     <plurals name="short_moments">
         <item quantity="one">%d фрагмент</item>
