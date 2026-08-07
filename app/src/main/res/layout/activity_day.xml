@@ -1,109 +1,197 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_app"
-    android:orientation="vertical"
-    android:padding="18dp">
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="vertical"
+        android:padding="18dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/backButton"
-            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:contentDescription="@string/back"
-            app:backgroundTint="@color/surface_high"
-            app:icon="@drawable/ic_arrow_back"
-            app:iconTint="@color/text_primary" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/backButton"
+                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:contentDescription="@string/back"
+                app:backgroundTint="@color/surface_high"
+                app:icon="@drawable/ic_arrow_back"
+                app:iconTint="@color/text_primary" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/titleText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-black"
+                    android:maxLines="2"
+                    android:textColor="@color/text_primary"
+                    android:textSize="23sp" />
+
+                <TextView
+                    android:id="@+id/momentsSummaryText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="@string/day_summary_empty"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="280dp"
+            android:layout_marginTop="18dp"
+            app:cardBackgroundColor="#000000"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/stroke"
+            app:strokeWidth="1dp">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <VideoView
+                    android:id="@+id/videoView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <TextView
+                    android:id="@+id/previewPlaceholder"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_thumbnail_placeholder"
+                    android:gravity="center"
+                    android:fontFamily="sans-serif-bold"
+                    android:text="@string/video_placeholder"
+                    android:textColor="#D9FFFFFF"
+                    android:textSize="18sp" />
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/buildProgress"
+                    android:layout_width="54dp"
+                    android:layout_height="54dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    app:indicatorColor="@color/primary"
+                    app:trackColor="#44FFFFFF" />
+            </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buildButton"
+                style="@style/Widget.DayFlash.PrimaryButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/build_video"
+                android:textColor="#082F49"
+                app:backgroundTint="@color/primary"
+                app:icon="@drawable/ic_sparkles"
+                app:iconTint="#082F49" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/shareButton"
+                style="@style/Widget.DayFlash.SecondaryButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="@string/share"
+                app:icon="@drawable/ic_share"
+                app:iconTint="@color/text_primary" />
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/titleText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="14dp"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:fontFamily="sans-serif-black"
-            android:maxLines="2"
-            android:textColor="@color/text_primary"
-            android:textSize="23sp" />
-    </LinearLayout>
-
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="18dp"
-        android:layout_weight="1"
-        app:cardBackgroundColor="#000000"
-        app:cardCornerRadius="28dp"
-        app:cardElevation="0dp"
-        app:strokeColor="@color/stroke"
-        app:strokeWidth="1dp">
-
-        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <VideoView
-                android:id="@+id/videoView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-            <TextView
-                android:id="@+id/previewPlaceholder"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/bg_thumbnail_placeholder"
-                android:gravity="center"
-                android:fontFamily="sans-serif-bold"
-                android:text="@string/video_placeholder"
-                android:textColor="#D9FFFFFF"
-                android:textSize="18sp" />
-
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/buildProgress"
-                android:layout_width="54dp"
-                android:layout_height="54dp"
-                android:layout_gravity="center"
-                android:visibility="gone"
-                app:indicatorColor="@color/primary"
-                app:trackColor="#44FFFFFF" />
-        </FrameLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        android:orientation="horizontal">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buildButton"
-            style="@style/Widget.DayFlash.PrimaryButton"
-            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/build_video"
-            android:textColor="#082F49"
-            app:backgroundTint="@color/primary"
-            app:icon="@drawable/ic_sparkles"
-            app:iconTint="#082F49" />
+            android:layout_marginTop="24dp"
+            android:fontFamily="sans-serif-black"
+            android:text="@string/map_title"
+            android:textColor="@color/text_primary"
+            android:textSize="21sp" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/shareButton"
-            style="@style/Widget.DayFlash.SecondaryButton"
-            android:layout_width="wrap_content"
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="235dp"
+            android:layout_marginTop="10dp"
+            app:cardBackgroundColor="@color/surface"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/stroke"
+            app:strokeWidth="1dp">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <org.osmdroid.views.MapView
+                    android:id="@+id/mapView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/map_title" />
+
+                <TextView
+                    android:id="@+id/mapEmptyText"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:padding="24dp"
+                    android:text="@string/map_empty"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:text="@string/share"
-            app:icon="@drawable/ic_share"
-            app:iconTint="@color/text_primary" />
+            android:layout_marginTop="24dp"
+            android:fontFamily="sans-serif-black"
+            android:text="@string/timeline_title"
+            android:textColor="@color/text_primary"
+            android:textSize="21sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/timeline_hint"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/timelineList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:clipToPadding="false"
+            android:nestedScrollingEnabled="false"
+            android:paddingBottom="16dp" />
     </LinearLayout>
-</LinearLayout>
+</androidx.core.widget.NestedScrollView>
