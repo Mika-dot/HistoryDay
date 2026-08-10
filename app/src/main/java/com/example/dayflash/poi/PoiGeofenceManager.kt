@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
 import androidx.core.content.ContextCompat
-import com.example.dayflash.BuildConfig
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
@@ -336,7 +335,7 @@ object PoiGeofenceManager {
     }
 
     private fun userAgent(): String =
-        "HistoryDay/${BuildConfig.VERSION_NAME} Android (+https://github.com/Mika-dot/HistoryDay)"
+        "HistoryDay/1.4 Android (+https://github.com/Mika-dot/HistoryDay)"
 
     private data class ScoredPoi(
         val poi: PoiData,
