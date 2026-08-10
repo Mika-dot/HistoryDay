@@ -8,6 +8,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.example.dayflash.data.AppDatabase
 import com.example.dayflash.video.MontageBuilder
+import com.example.dayflash.video.OverlayMode
 import java.io.File
 import java.time.Duration
 import java.time.LocalDate
@@ -18,12 +19,16 @@ class DailyMontageWorker(context: Context, params: WorkerParameters) : Coroutine
     override suspend fun doWork(): Result {
         val day = LocalDate.now().minusDays(1).toString()
         val clips = AppDatabase.get(applicationContext).clipDao().clipsForDay(day)
-            .map { File(it.path) }
-            .filter { it.exists() }
+            .filter { File(it.path).exists() }
 
         if (clips.isNotEmpty()) {
             val output = File(applicationContext.filesDir, "videos/days/$day.mp4")
-            MontageBuilder.build(applicationContext, clips, output)
+            MontageBuilder.build(
+                applicationContext,
+                clips,
+                output,
+                OverlayMode.TIME_PLACE,
+            )
         }
         DailyWork.schedule(applicationContext)
         return Result.success()
