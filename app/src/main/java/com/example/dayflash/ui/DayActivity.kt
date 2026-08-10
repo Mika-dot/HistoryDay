@@ -4,24 +4,29 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.widget.MediaController
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.dayflash.R
 import com.example.dayflash.data.AppDatabase
 import com.example.dayflash.data.ClipEntity
 import com.example.dayflash.databinding.ActivityDayBinding
 import com.example.dayflash.video.MontageBuilder
+import com.example.dayflash.video.OverlayMode
+import com.google.android.material.chip.Chip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.overlay.CopyrightOverlay
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
 import java.io.File
@@ -36,13 +41,20 @@ class DayActivity : ComponentActivity() {
     private lateinit var binding: ActivityDayBinding
     private lateinit var day: String
     private lateinit var output: File
+    private lateinit var player: ExoPlayer
     private var clips: List<ClipEntity> = emptyList()
+    private var overlayMode: OverlayMode = OverlayMode.TIME_PLACE
+    private var previewClip: ClipEntity? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Configuration.getInstance().userAgentValue = packageName
         binding = ActivityDayBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        player = ExoPlayer.Builder(this).build().also {
+            it.repeatMode = Player.REPEAT_MODE_ONE
+            binding.playerView.player = it
+        }
 
         day = intent.getStringExtra(EXTRA_DAY) ?: return finish()
         output = File(filesDir, "videos/days/$day.mp4")
@@ -51,17 +63,31 @@ class DayActivity : ComponentActivity() {
             DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(Locale.getDefault())
         ) ?: day
 
-        binding.videoView.setMediaController(MediaController(this))
         binding.mapView.setTileSource(TileSourceFactory.MAPNIK)
         binding.mapView.setMultiTouchControls(true)
+        binding.mapView.setUseDataConnection(true)
         binding.mapView.controller.setZoom(15.0)
 
         binding.backButton.setOnClickListener { finish() }
         binding.buildButton.setOnClickListener { buildVideo() }
         binding.shareButton.setOnClickListener { shareVideo() }
+        setupOverlaySelector()
 
-        if (output.exists()) play(output) else showEmptyPreview()
+        if (output.exists()) playFinal() else showEmptyPreview()
         loadMoments()
+    }
+
+    private fun setupOverlaySelector() {
+        binding.overlayGroup.setOnCheckedStateChangeListener { _, checkedIds ->
+            overlayMode = when (checkedIds.firstOrNull()) {
+                R.id.overlayTimeChip -> OverlayMode.TIME
+                R.id.overlayPlaceChip -> OverlayMode.PLACE
+                R.id.overlayGpsChip -> OverlayMode.COORDINATES
+                R.id.overlayNoneChip -> OverlayMode.NONE
+                else -> OverlayMode.TIME_PLACE
+            }
+            previewClip?.let { updatePreviewOverlay(it) }
+        }
     }
 
     private fun loadMoments() {
@@ -82,7 +108,26 @@ class DayActivity : ComponentActivity() {
             binding.timelineList.layoutManager = LinearLayoutManager(this@DayActivity)
             binding.timelineList.adapter = MomentAdapter(clips) { clip -> playMoment(clip) }
             binding.timelineList.isNestedScrollingEnabled = false
+            renderMomentsStrip(clips)
             renderMap(clips)
+        }
+    }
+
+    private fun renderMomentsStrip(items: List<ClipEntity>) {
+        binding.momentsStrip.removeAllViews()
+        items.forEach { clip ->
+            val time = formatTime(clip.capturedAt)
+            val chip = Chip(this).apply {
+                text = time
+                isCheckable = false
+                isClickable = true
+                setOnClickListener { playMoment(clip) }
+            }
+            val params = ViewGroup.MarginLayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            ).apply { marginEnd = dp(8) }
+            binding.momentsStrip.addView(chip, params)
         }
     }
 
@@ -103,16 +148,19 @@ class DayActivity : ComponentActivity() {
 
         located.forEachIndexed { index, clip ->
             val point = GeoPoint(clip.latitude!!, clip.longitude!!)
-            val time = Instant.ofEpochMilli(clip.capturedAt)
-                .atZone(ZoneId.systemDefault())
-                .format(DateTimeFormatter.ofPattern("HH:mm"))
             binding.mapView.overlays.add(Marker(binding.mapView).apply {
                 position = point
                 title = clip.placeName ?: getString(R.string.map_point_number, index + 1)
-                snippet = time
+                snippet = formatTime(clip.capturedAt)
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                setOnMarkerClickListener { _, _ ->
+                    playMoment(clip)
+                    showInfoWindow()
+                    true
+                }
             })
         }
+        binding.mapView.overlays.add(CopyrightOverlay(this))
 
         binding.mapView.post {
             if (points.size == 1) {
@@ -128,7 +176,45 @@ class DayActivity : ComponentActivity() {
     private fun playMoment(clip: ClipEntity) {
         val file = File(clip.path)
         if (!file.exists()) return
-        play(file)
+        previewClip = clip
+        playFile(file)
+        updatePreviewOverlay(clip)
+    }
+
+    private fun playFinal() {
+        previewClip = null
+        binding.previewOverlayText.visibility = View.GONE
+        playFile(output)
+    }
+
+    private fun playFile(file: File) {
+        binding.previewPlaceholder.visibility = View.GONE
+        binding.playerView.visibility = View.VISIBLE
+        binding.shareButton.isEnabled = output.exists()
+        player.setMediaItem(MediaItem.fromUri(Uri.fromFile(file)))
+        player.prepare()
+        player.playWhenReady = true
+    }
+
+    private fun updatePreviewOverlay(clip: ClipEntity) {
+        val label = overlayLabel(clip)
+        binding.previewOverlayText.text = label
+        binding.previewOverlayText.visibility = if (label.isBlank()) View.GONE else View.VISIBLE
+    }
+
+    private fun overlayLabel(clip: ClipEntity): String {
+        val time = formatTime(clip.capturedAt)
+        val place = clip.placeName?.trim()?.takeIf { it.isNotBlank() }
+        val coordinates = if (clip.latitude != null && clip.longitude != null) {
+            String.format(Locale.US, "%.5f, %.5f", clip.latitude, clip.longitude)
+        } else null
+        return when (overlayMode) {
+            OverlayMode.TIME_PLACE -> if (place != null) "$time  •  $place" else time
+            OverlayMode.TIME -> time
+            OverlayMode.PLACE -> place ?: time
+            OverlayMode.COORDINATES -> coordinates ?: time
+            OverlayMode.NONE -> ""
+        }
     }
 
     private fun buildVideo() {
@@ -136,13 +222,16 @@ class DayActivity : ComponentActivity() {
         lifecycleScope.launch {
             val inputs = withContext(Dispatchers.IO) {
                 AppDatabase.get(this@DayActivity).clipDao().clipsForDay(day)
-                    .map { File(it.path) }
-                    .filter { it.exists() }
+                    .filter { File(it.path).exists() }
             }
-            val result = if (inputs.isEmpty()) false else MontageBuilder.build(this@DayActivity, inputs, output)
+            val result = if (inputs.isEmpty()) {
+                false
+            } else {
+                MontageBuilder.build(this@DayActivity, inputs, output, overlayMode)
+            }
             setBuilding(false)
             if (result) {
-                play(output)
+                playFinal()
             } else {
                 Toast.makeText(this@DayActivity, R.string.build_failed, Toast.LENGTH_LONG).show()
             }
@@ -153,24 +242,15 @@ class DayActivity : ComponentActivity() {
         binding.buildProgress.visibility = if (building) View.VISIBLE else View.GONE
         binding.buildButton.isEnabled = !building
         binding.shareButton.isEnabled = !building && output.exists()
+        binding.overlayGroup.isEnabled = !building
         binding.buildButton.setText(if (building) R.string.building_video else R.string.rebuild_video)
     }
 
     private fun showEmptyPreview() {
         binding.previewPlaceholder.visibility = View.VISIBLE
-        binding.videoView.visibility = View.INVISIBLE
+        binding.playerView.visibility = View.INVISIBLE
+        binding.previewOverlayText.visibility = View.GONE
         binding.shareButton.isEnabled = false
-    }
-
-    private fun play(file: File) {
-        binding.previewPlaceholder.visibility = View.GONE
-        binding.videoView.visibility = View.VISIBLE
-        binding.shareButton.isEnabled = output.exists()
-        binding.videoView.setVideoPath(file.absolutePath)
-        binding.videoView.setOnPreparedListener {
-            it.isLooping = true
-            binding.videoView.start()
-        }
     }
 
     private fun shareVideo() {
@@ -195,6 +275,19 @@ class DayActivity : ComponentActivity() {
         if (::binding.isInitialized) binding.mapView.onPause()
         super.onPause()
     }
+
+    override fun onDestroy() {
+        binding.playerView.player = null
+        player.release()
+        super.onDestroy()
+    }
+
+    private fun formatTime(timestamp: Long): String =
+        Instant.ofEpochMilli(timestamp)
+            .atZone(ZoneId.systemDefault())
+            .format(DateTimeFormatter.ofPattern("HH:mm"))
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     companion object {
         const val EXTRA_DAY = "day"
