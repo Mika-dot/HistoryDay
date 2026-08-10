@@ -2,6 +2,7 @@ package com.example.dayflash.capture
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.view.View
@@ -25,6 +26,8 @@ import com.example.dayflash.data.ClipEntity
 import com.example.dayflash.databinding.ActivityCaptureBinding
 import com.example.dayflash.location.MomentLocation
 import com.example.dayflash.location.MomentLocationResolver
+import com.example.dayflash.poi.PoiGeofenceManager
+import com.example.dayflash.poi.PoiRefreshWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -170,6 +173,13 @@ class CaptureActivity : ComponentActivity() {
                 val location = runCatching {
                     withTimeoutOrNull(LOCATION_RESULT_TIMEOUT_MS) { locationDeferred?.await() }
                 }.getOrNull()
+                val suggestedName = intent.getStringExtra(EXTRA_POI_NAME)?.trim()?.takeIf { it.isNotEmpty() }
+                val suggestedLat = intent.getDoubleExtra(EXTRA_POI_LAT, Double.NaN)
+                val suggestedLon = intent.getDoubleExtra(EXTRA_POI_LON, Double.NaN)
+                val useSuggestedPlace = location != null && suggestedName != null &&
+                    suggestedLat.isFinite() && suggestedLon.isFinite() &&
+                    distanceMeters(location.latitude, location.longitude, suggestedLat, suggestedLon) <= POI_NAME_MAX_DISTANCE_METERS
+
                 AppDatabase.get(applicationContext).clipDao().insert(
                     ClipEntity(
                         path = file.absolutePath,
@@ -177,17 +187,26 @@ class CaptureActivity : ComponentActivity() {
                         dayKey = day,
                         latitude = location?.latitude,
                         longitude = location?.longitude,
-                        placeName = location?.placeName,
+                        placeName = if (useSuggestedPlace) suggestedName else location?.placeName,
                         osmType = location?.osmType,
                         osmId = location?.osmId,
                     )
                 )
+                if (PoiGeofenceManager.isEnabled(applicationContext)) {
+                    PoiRefreshWorker.enqueue(applicationContext, force = false)
+                }
             }
         } else {
             file.delete()
         }
 
         binding.captureProgress.postDelayed({ finishAndRemoveTask() }, FINISH_DELAY_MS)
+    }
+
+    private fun distanceMeters(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
+        val result = FloatArray(1)
+        Location.distanceBetween(lat1, lon1, lat2, lon2, result)
+        return result[0]
     }
 
     private fun switchCamera() {
@@ -228,10 +247,14 @@ class CaptureActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_AUTO_RECORD = "auto_record"
+        const val EXTRA_POI_NAME = "poi_name"
+        const val EXTRA_POI_LAT = "poi_lat"
+        const val EXTRA_POI_LON = "poi_lon"
         private const val CAMERA_WARMUP_MS = 650L
         private const val RECORDING_MS = 2_000L
         private const val FINISH_DELAY_MS = 220L
         private const val LOCATION_RESULT_TIMEOUT_MS = 4_000L
+        private const val POI_NAME_MAX_DISTANCE_METERS = 500f
         private val saveScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 }
