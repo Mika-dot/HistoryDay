@@ -32,6 +32,45 @@
     <string name="notification_title">Снять 2 секунды</string>
     <string name="notification_text">Нажмите, чтобы начать запись</string>
 
+    <string name="poi_notification_channel_name">Интересные места</string>
+    <string name="poi_notification_channel_description">Предложения снять момент рядом с достопримечательностями</string>
+    <string name="poi_notification_title">Рядом: %1$s</string>
+    <string name="poi_notification_text">Можно сохранить этот момент дня</string>
+    <string name="poi_notification_big_text">Вы рядом с «%1$s». Нажмите, чтобы сразу снять 2 секунды для истории дня.</string>
+    <string name="poi_card_title">Места истории</string>
+    <string name="poi_card_hint">Уведомлять у Кремля, музеев, площадей, парков, памятников и других интересных OSM-точек.</string>
+    <string name="poi_enable">Включить места</string>
+    <string name="poi_disable">Выключить</string>
+    <string name="poi_status_off">Выключено</string>
+    <string name="poi_status_need_location">Нужна точная геолокация</string>
+    <string name="poi_status_need_background">Нужно разрешить геолокацию «Всегда»</string>
+    <string name="poi_status_on">Включено · %1$d точек рядом</string>
+    <string name="poi_background_title">Разрешите геолокацию в фоне</string>
+    <string name="poi_background_message">Это нужно только для функции «Места истории»: Android сможет прислать уведомление, когда вы задержитесь рядом с достопримечательностью. На Android 11+ выберите для геолокации приложения вариант «Разрешить всегда».</string>
+    <string name="open_settings">Открыть настройки</string>
+    <string name="cancel">Отмена</string>
+
+    <string name="map_title">Точки дня</string>
+    <string name="map_empty">У этого дня пока нет геометок. Новые моменты сохраняют точку съёмки, если доступ к геолокации разрешён.</string>
+    <string name="timeline_title">Хронология дня</string>
+    <string name="timeline_hint">Нажмите на момент, чтобы посмотреть именно этот фрагмент.</string>
+    <string name="map_point">Точка на карте</string>
+    <string name="map_point_number">Точка %1$d</string>
+    <string name="no_location">Без геометки</string>
+    <string name="location_not_saved">Место не сохранено</string>
+    <string name="day_summary">%1$d моментов · %2$d мест · %3$d с геометкой</string>
+    <string name="day_summary_empty">История дня</string>
+
+    <string name="editor_title">Оформление ролика</string>
+    <string name="editor_hint">Выберите, что будет запечено в нижнем углу каждого фрагмента.</string>
+    <string name="overlay_time_place">Время + место</string>
+    <string name="overlay_time">Время</string>
+    <string name="overlay_place">Место</string>
+    <string name="overlay_gps">GPS</string>
+    <string name="overlay_none">Без подписи</string>
+    <string name="moments_strip_title">Шкала моментов</string>
+    <string name="moment_selected">Выбран момент %1$s</string>
+
     <plurals name="short_moments">
         <item quantity="one">%d фрагмент</item>
         <item quantity="few">%d фрагмента</item>

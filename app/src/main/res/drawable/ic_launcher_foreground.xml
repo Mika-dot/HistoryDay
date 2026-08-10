@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Sun / captured moment -->
+    <path
+        android:fillColor="#F6FFFF"
+        android:pathData="M54,24 m-9,0 a9,9 0,1 0,18,0 a9,9 0,1 0,-18,0" />
+
+    <!-- Rays -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#72F7EE"
+        android:strokeLineCap="round"
+        android:strokeWidth="2.6"
+        android:pathData="M54,9 L54,14 M37,15 L41,19 M71,15 L67,19 M29,27 L35,27 M79,27 L73,27" />
+
+    <!-- Timeline arc -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#55E9F2"
+        android:strokeLineCap="round"
+        android:strokeWidth="3.2"
+        android:pathData="M18,67 C31,52 77,52 90,67" />
+
+    <!-- Timeline points -->
+    <path
+        android:fillColor="#63F4EE"
+        android:pathData="M29,60 m-3.2,0 a3.2,3.2 0,1 0,6.4,0 a3.2,3.2 0,1 0,-6.4,0 M79,60 m-3.2,0 a3.2,3.2 0,1 0,6.4,0 a3.2,3.2 0,1 0,-6.4,0" />
+
+    <!-- Play ring -->
+    <path
+        android:fillColor="#08233E"
+        android:strokeColor="#EFFFFF"
+        android:strokeWidth="3.2"
+        android:pathData="M54,58 m-11,0 a11,11 0,1 0,22,0 a11,11 0,1 0,-22,0" />
+
+    <!-- Play symbol -->
+    <path
+        android:fillColor="#F7FFFF"
+        android:pathData="M51,51 L51,65 L62,58 Z" />
+
+    <!-- Trail into the day -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#4EE9F1"
+        android:strokeLineCap="round"
+        android:strokeWidth="2.2"
+        android:pathData="M54,70 C66,75 68,82 58,88 C51,92 45,94 39,96" />
+
+    <path
+        android:fillColor="#7BFFF4"
+        android:pathData="M61,76 m-1.5,0 a1.5,1.5 0,1 0,3,0 a1.5,1.5 0,1 0,-3,0 M59,85 m-1.7,0 a1.7,1.7 0,1 0,3.4,0 a1.7,1.7 0,1 0,-3.4,0 M49,91 m-1.8,0 a1.8,1.8 0,1 0,3.6,0 a1.8,1.8 0,1 0,-3.6,0" />
+</vector>
