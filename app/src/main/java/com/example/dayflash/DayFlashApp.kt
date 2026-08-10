@@ -12,7 +12,7 @@ class DayFlashApp : Application() {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
 
         Configuration.getInstance().apply {
-            userAgentValue = "HistoryDay/${BuildConfig.VERSION_NAME} Android (+https://github.com/Mika-dot/HistoryDay)"
+            userAgentValue = "HistoryDay/1.4 Android (+https://github.com/Mika-dot/HistoryDay)"
             tileFileSystemCacheMaxBytes = 64L * 1024L * 1024L
             tileFileSystemCacheTrimBytes = 48L * 1024L * 1024L
         }
