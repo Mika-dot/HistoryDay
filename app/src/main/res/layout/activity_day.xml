@@ -58,8 +58,8 @@
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="280dp"
-            android:layout_marginTop="18dp"
+            android:layout_height="500dp"
+            android:layout_marginTop="16dp"
             app:cardBackgroundColor="#000000"
             app:cardCornerRadius="28dp"
             app:cardElevation="0dp"
@@ -70,10 +70,32 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <VideoView
-                    android:id="@+id/videoView"
+                <androidx.media3.ui.PlayerView
+                    android:id="@+id/playerView"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+                    android:layout_height="match_parent"
+                    android:background="#000000"
+                    app:resize_mode="fit"
+                    app:show_buffering="when_playing"
+                    app:use_controller="true" />
+
+                <TextView
+                    android:id="@+id/previewOverlayText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|start"
+                    android:layout_marginStart="18dp"
+                    android:layout_marginBottom="52dp"
+                    android:background="#99000000"
+                    android:fontFamily="sans-serif-bold"
+                    android:maxWidth="300dp"
+                    android:paddingStart="10dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="6dp"
+                    android:textColor="#FFFFFFFF"
+                    android:textSize="15sp"
+                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/previewPlaceholder"
@@ -96,6 +118,93 @@
                     app:trackColor="#44FFFFFF" />
             </FrameLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:fontFamily="sans-serif-black"
+            android:text="@string/editor_title"
+            android:textColor="@color/text_primary"
+            android:textSize="20sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="@string/editor_hint"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/overlayGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:selectionRequired="true"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/overlayTimePlaceChip"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/overlay_time_place" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/overlayTimeChip"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/overlay_time" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/overlayPlaceChip"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/overlay_place" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/overlayGpsChip"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/overlay_gps" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/overlayNoneChip"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/overlay_none" />
+        </com.google.android.material.chip.ChipGroup>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:fontFamily="sans-serif-bold"
+            android:text="@string/moments_strip_title"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:clipToPadding="false"
+            android:fillViewport="false"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/momentsStrip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingEnd="12dp" />
+        </HorizontalScrollView>
 
         <LinearLayout
             android:layout_width="match_parent"
