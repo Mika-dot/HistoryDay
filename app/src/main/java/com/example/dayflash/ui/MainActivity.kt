@@ -3,8 +3,10 @@ package com.example.dayflash.ui
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,6 +20,9 @@ import com.example.dayflash.capture.CapturePreferences
 import com.example.dayflash.data.AppDatabase
 import com.example.dayflash.databinding.ActivityMainBinding
 import com.example.dayflash.notify.ReminderScheduler
+import com.example.dayflash.poi.PoiGeofenceManager
+import com.example.dayflash.poi.PoiRefreshWorker
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -25,16 +30,24 @@ import java.time.format.DateTimeFormatter
 
 class MainActivity : ComponentActivity() {
     private lateinit var binding: ActivityMainBinding
+    private var pendingPoiEnable = false
 
     private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         val cameraOk = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
             PackageManager.PERMISSION_GRANTED
         if (cameraOk) ReminderScheduler.setEnabled(this, true)
         refreshStatus()
+        refreshPoiStatus()
     }
 
     private val locationPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-        // Location is an optional enhancement. Recording continues normally if it is denied.
+        if (pendingPoiEnable) continuePoiEnable()
+        refreshPoiStatus()
+    }
+
+    private val backgroundLocationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+        if (pendingPoiEnable) continuePoiEnable()
+        refreshPoiStatus()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,7 +94,19 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        binding.poiButton.setOnClickListener {
+            if (PoiGeofenceManager.isEnabled(this)) {
+                pendingPoiEnable = false
+                PoiGeofenceManager.setEnabled(this, false)
+                refreshPoiStatus()
+            } else {
+                pendingPoiEnable = true
+                continuePoiEnable()
+            }
+        }
+
         refreshStatus()
+        refreshPoiStatus()
         requestLocationForExistingInstallIfNeeded()
     }
 
@@ -127,9 +152,57 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    private fun continuePoiEnable() {
+        if (!PoiGeofenceManager.hasForegroundLocation(this)) {
+            locationPermissions.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                )
+            )
+            return
+        }
+
+        if (!PoiGeofenceManager.hasBackgroundLocation(this)) {
+            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+                backgroundLocationPermission.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.poi_background_title)
+                    .setMessage(R.string.poi_background_message)
+                    .setNegativeButton(R.string.cancel) { _, _ ->
+                        pendingPoiEnable = false
+                        refreshPoiStatus()
+                    }
+                    .setPositiveButton(R.string.open_settings) { _, _ ->
+                        startActivity(
+                            Intent(
+                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.parse("package:$packageName"),
+                            )
+                        )
+                    }
+                    .show()
+            }
+            return
+        }
+
+        pendingPoiEnable = false
+        PoiGeofenceManager.setEnabled(this, true)
+        PoiRefreshWorker.enqueue(this, force = true)
+        refreshPoiStatus()
+    }
+
     override fun onResume() {
         super.onResume()
+        if (pendingPoiEnable && PoiGeofenceManager.hasForegroundLocation(this) && PoiGeofenceManager.hasBackgroundLocation(this)) {
+            continuePoiEnable()
+        }
+        if (PoiGeofenceManager.isEnabled(this) && PoiGeofenceManager.hasBackgroundLocation(this)) {
+            PoiRefreshWorker.enqueue(this, force = false)
+        }
         refreshStatus()
+        refreshPoiStatus()
     }
 
     private fun refreshStatus() {
@@ -147,6 +220,17 @@ class MainActivity : ComponentActivity() {
             getString(R.string.next_reminder_at, time)
         } else {
             getString(R.string.random_reminder_window)
+        }
+    }
+
+    private fun refreshPoiStatus() {
+        val enabled = PoiGeofenceManager.isEnabled(this)
+        binding.poiButton.setText(if (enabled) R.string.poi_disable else R.string.poi_enable)
+        binding.poiStatusText.text = when {
+            enabled && !PoiGeofenceManager.hasForegroundLocation(this) -> getString(R.string.poi_status_need_location)
+            enabled && !PoiGeofenceManager.hasBackgroundLocation(this) -> getString(R.string.poi_status_need_background)
+            enabled -> getString(R.string.poi_status_on, PoiGeofenceManager.registeredCount(this))
+            else -> getString(R.string.poi_status_off)
         }
     }
 
