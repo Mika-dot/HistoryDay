@@ -102,8 +102,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@drawable/bg_thumbnail_placeholder"
-                    android:gravity="center"
                     android:fontFamily="sans-serif-bold"
+                    android:gravity="center"
                     android:text="@string/video_placeholder"
                     android:textColor="#D9FFFFFF"
                     android:textSize="18sp" />
@@ -244,9 +244,18 @@
             android:textColor="@color/text_primary"
             android:textSize="21sp" />
 
+        <TextView
+            android:id="@+id/mapSummaryText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/map_empty_short"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="235dp"
+            android:layout_height="160dp"
             android:layout_marginTop="10dp"
             app:cardBackgroundColor="@color/surface"
             app:cardCornerRadius="24dp"
@@ -258,11 +267,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <org.osmdroid.views.MapView
-                    android:id="@+id/mapView"
+                <com.example.dayflash.ui.DayRouteView
+                    android:id="@+id/routeView"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:contentDescription="@string/map_title" />
+                    android:contentDescription="@string/map_route_description" />
 
                 <TextView
                     android:id="@+id/mapEmptyText"
@@ -276,6 +285,14 @@
                     android:visibility="gone" />
             </FrameLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/openMapButton"
+            style="@style/Widget.DayFlash.SecondaryButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/open_in_maps" />
 
         <TextView
             android:layout_width="match_parent"
