@@ -12,8 +12,8 @@ android {
         applicationId = "com.example.dayflash"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "1.4"
+        versionCode = 6
+        versionName = "1.5"
     }
 
     buildFeatures { viewBinding = true }
@@ -52,7 +52,4 @@ dependencies {
     implementation("androidx.room:room-runtime:$room")
     implementation("androidx.room:room-ktx:$room")
     kapt("androidx.room:room-compiler:$room")
-
-    implementation("org.osmdroid:osmdroid-android:6.1.20")
-    implementation("com.google.android.gms:play-services-location:21.3.0")
 }
