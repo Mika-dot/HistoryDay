@@ -1,0 +1,119 @@
+name: Publish release
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "app/build.gradle.kts"
+      - "README.md"
+      - ".github/workflows/release.yml"
+      - "app/src/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(sed -n 's/.*versionName = "\([^"]*\)".*/\1/p' app/build.gradle.kts | head -n 1)
+          if [ -z "$VERSION" ]; then
+            echo "Cannot read versionName from app/build.gradle.kts" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check existing release
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release $VERSION already exists; nothing to publish."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Java 17
+        if: steps.existing.outputs.exists != 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        if: steps.existing.outputs.exists != 'true'
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        if: steps.existing.outputs.exists != 'true'
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Test and build APK
+        if: steps.existing.outputs.exists != 'true'
+        run: gradle --no-daemon testDebugUnitTest assembleDebug --stacktrace
+
+      - name: Prepare release files
+        if: steps.existing.outputs.exists != 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk "HistoryDay-$VERSION.apk"
+          sha256sum "HistoryDay-$VERSION.apk" > "HistoryDay-$VERSION.apk.sha256"
+          cat > release-notes.md <<'EOF'
+          ## HistoryDay 1.5
+
+          Минималистичный видеодневник: случайное уведомление → один тап → автоматическая запись 2 секунд → история дня.
+
+          ### Что нового
+
+          - таймлайн всех моментов дня;
+          - сохранение времени, места и координат момента;
+          - лёгкая локальная схема геоточек без загрузки картографических тайлов;
+          - открытие точки через системный `geo:` intent в Яндекс Картах, 2ГИС или другом установленном приложении;
+          - fallback на веб-2ГИС, если обработчика карт нет;
+          - подписи `время + место`, `время`, `место`, `координаты` или без подписи в итоговом ролике;
+          - быстрые действия уведомления «Через 10 минут» и «Пропустить»;
+          - удалены Google Play Services Location, osmdroid, фоновые geofence/POI worker'ы и `ACCESS_BACKGROUND_LOCATION`;
+          - геопозиция запрашивается только в момент сохранения клипа;
+          - основной сценарий по-прежнему не требует аккаунта, сервера или обязательного интернета.
+
+          ### Совместимость
+
+          - Android 8.0+ / API 26+;
+          - APK является готовой устанавливаемой сборкой приложения;
+          - SHA-256 опубликован рядом отдельным файлом.
+          EOF
+
+      - name: Publish GitHub Release
+        if: steps.existing.outputs.exists != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          gh release create "$VERSION" \
+            "HistoryDay-$VERSION.apk#HistoryDay $VERSION APK" \
+            "HistoryDay-$VERSION.apk.sha256#SHA-256" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "HistoryDay $VERSION" \
+            --notes-file release-notes.md \
+            --latest
