@@ -42,8 +42,7 @@ class MomentAdapter(
                 else -> context.getString(R.string.no_location)
             }
             binding.metaText.text = if (item.latitude != null && item.longitude != null) {
-                val coords = String.format(Locale.US, "%.5f, %.5f", item.latitude, item.longitude)
-                item.osmType?.takeIf { it.isNotBlank() }?.let { "$it · $coords" } ?: coords
+                String.format(Locale.US, "%.5f, %.5f", item.latitude, item.longitude)
             } else {
                 context.getString(R.string.location_not_saved)
             }
