@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.example.dayflash.R
 import com.example.dayflash.capture.CaptureActivity
 
@@ -28,31 +29,46 @@ object NotificationHelper {
     }
 
     fun show(context: Context) {
-        val intent = Intent(context, CaptureActivity::class.java).apply {
+        val captureIntent = Intent(context, CaptureActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             putExtra(CaptureActivity.EXTRA_AUTO_RECORD, true)
         }
-        val pending = PendingIntent.getActivity(
+        val capturePending = PendingIntent.getActivity(
             context,
             100,
-            intent,
+            captureIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+
+        val snoozePending = PendingIntent.getBroadcast(
+            context,
+            101,
+            Intent(context, ReminderActionReceiver::class.java).setAction(ReminderActionReceiver.ACTION_SNOOZE),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val skipPending = PendingIntent.getBroadcast(
+            context,
+            102,
+            Intent(context, ReminderActionReceiver::class.java).setAction(ReminderActionReceiver.ACTION_SKIP),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_moment)
             .setContentTitle(context.getString(R.string.notification_title))
             .setContentText(context.getString(R.string.notification_text))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
-            .setColor(ContextCompatCompat.getColor(context, R.color.primary))
+            .setColor(ContextCompat.getColor(context, R.color.primary))
             .setAutoCancel(true)
-            .setContentIntent(pending)
+            .setContentIntent(capturePending)
+            .addAction(R.drawable.ic_stat_moment, context.getString(R.string.notification_snooze), snoozePending)
+            .addAction(R.drawable.ic_stat_moment, context.getString(R.string.notification_skip), skipPending)
             .build()
         NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
     }
-}
 
-private object ContextCompatCompat {
-    fun getColor(context: Context, colorRes: Int): Int =
-        androidx.core.content.ContextCompat.getColor(context, colorRes)
+    fun dismiss(context: Context) {
+        NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
+    }
 }

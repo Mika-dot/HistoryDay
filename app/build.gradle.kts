@@ -12,8 +12,8 @@ android {
         applicationId = "com.example.dayflash"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.2"
+        versionCode = 6
+        versionName = "1.5"
     }
 
     buildFeatures { viewBinding = true }
@@ -44,6 +44,9 @@ dependencies {
     val media3 = "1.6.1"
     implementation("androidx.media3:media3-common:$media3")
     implementation("androidx.media3:media3-transformer:$media3")
+    implementation("androidx.media3:media3-effect:$media3")
+    implementation("androidx.media3:media3-exoplayer:$media3")
+    implementation("androidx.media3:media3-ui:$media3")
 
     val room = "2.6.1"
     implementation("androidx.room:room-runtime:$room")

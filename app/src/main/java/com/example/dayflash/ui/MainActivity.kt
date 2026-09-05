@@ -33,6 +33,10 @@ class MainActivity : ComponentActivity() {
         refreshStatus()
     }
 
+    private val locationPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        refreshStatus()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -78,6 +82,7 @@ class MainActivity : ComponentActivity() {
         }
 
         refreshStatus()
+        requestLocationForExistingInstallIfNeeded()
     }
 
     private fun setupCameraToggle() {
@@ -95,9 +100,31 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestPermissionsAndEnable() {
-        val list = mutableListOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
+        val list = mutableListOf(
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        )
         if (Build.VERSION.SDK_INT >= 33) list += Manifest.permission.POST_NOTIFICATIONS
         permissions.launch(list.toTypedArray())
+    }
+
+    private fun requestLocationForExistingInstallIfNeeded() {
+        val cameraGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+        val coarseGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        val fineGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        if (!cameraGranted || coarseGranted || fineGranted) return
+
+        val prefs = getSharedPreferences(LOCATION_PREFS, MODE_PRIVATE)
+        if (prefs.getBoolean(LOCATION_PROMPTED, false)) return
+        prefs.edit().putBoolean(LOCATION_PROMPTED, true).apply()
+        locationPermissions.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+            )
+        )
     }
 
     override fun onResume() {
@@ -121,5 +148,10 @@ class MainActivity : ComponentActivity() {
         } else {
             getString(R.string.random_reminder_window)
         }
+    }
+
+    companion object {
+        private const val LOCATION_PREFS = "historyday_location_prefs"
+        private const val LOCATION_PROMPTED = "location_prompted_v15"
     }
 }
