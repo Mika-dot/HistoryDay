@@ -17,18 +17,13 @@ import com.example.dayflash.R
 import com.example.dayflash.data.AppDatabase
 import com.example.dayflash.data.ClipEntity
 import com.example.dayflash.databinding.ActivityDayBinding
+import com.example.dayflash.location.MapLauncher
 import com.example.dayflash.video.MontageBuilder
 import com.example.dayflash.video.OverlayMode
 import com.google.android.material.chip.Chip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.BoundingBox
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.overlay.CopyrightOverlay
-import org.osmdroid.views.overlay.Marker
-import org.osmdroid.views.overlay.Polyline
 import java.io.File
 import java.time.Instant
 import java.time.LocalDate
@@ -45,6 +40,7 @@ class DayActivity : ComponentActivity() {
     private var clips: List<ClipEntity> = emptyList()
     private var overlayMode: OverlayMode = OverlayMode.TIME_PLACE
     private var previewClip: ClipEntity? = null
+    private var mapClip: ClipEntity? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,14 +59,10 @@ class DayActivity : ComponentActivity() {
             DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(Locale.getDefault())
         ) ?: day
 
-        binding.mapView.setTileSource(TileSourceFactory.MAPNIK)
-        binding.mapView.setMultiTouchControls(true)
-        binding.mapView.setUseDataConnection(true)
-        binding.mapView.controller.setZoom(15.0)
-
         binding.backButton.setOnClickListener { finish() }
         binding.buildButton.setOnClickListener { buildVideo() }
         binding.shareButton.setOnClickListener { shareVideo() }
+        binding.openMapButton.setOnClickListener { openSelectedPoint() }
         setupOverlaySelector()
 
         if (output.exists()) playFinal() else showEmptyPreview()
@@ -98,27 +90,27 @@ class DayActivity : ComponentActivity() {
             }
 
             val uniquePlaces = clips.mapNotNull { it.placeName?.takeIf(String::isNotBlank) }.distinct().size
+            val locatedCount = clips.count { it.latitude != null && it.longitude != null }
             binding.momentsSummaryText.text = getString(
                 R.string.day_summary,
                 clips.size,
                 uniquePlaces,
-                clips.count { it.latitude != null && it.longitude != null },
+                locatedCount,
             )
 
             binding.timelineList.layoutManager = LinearLayoutManager(this@DayActivity)
             binding.timelineList.adapter = MomentAdapter(clips) { clip -> playMoment(clip) }
             binding.timelineList.isNestedScrollingEnabled = false
             renderMomentsStrip(clips)
-            renderMap(clips)
+            renderRoute(clips)
         }
     }
 
     private fun renderMomentsStrip(items: List<ClipEntity>) {
         binding.momentsStrip.removeAllViews()
         items.forEach { clip ->
-            val time = formatTime(clip.capturedAt)
             val chip = Chip(this).apply {
-                text = time
+                text = formatTime(clip.capturedAt)
                 isCheckable = false
                 isClickable = true
                 setOnClickListener { playMoment(clip) }
@@ -131,54 +123,33 @@ class DayActivity : ComponentActivity() {
         }
     }
 
-    private fun renderMap(items: List<ClipEntity>) {
+    private fun renderRoute(items: List<ClipEntity>) {
         val located = items.filter { it.latitude != null && it.longitude != null }
+        binding.routeView.submit(located.map { it.latitude!! to it.longitude!! })
         binding.mapEmptyText.visibility = if (located.isEmpty()) View.VISIBLE else View.GONE
-        binding.mapView.visibility = if (located.isEmpty()) View.INVISIBLE else View.VISIBLE
-        binding.mapView.overlays.clear()
-        if (located.isEmpty()) return
+        binding.routeView.visibility = if (located.isEmpty()) View.INVISIBLE else View.VISIBLE
 
-        val points = located.map { GeoPoint(it.latitude!!, it.longitude!!) }
-        if (points.size > 1) {
-            binding.mapView.overlays.add(Polyline().apply {
-                setPoints(points)
-                outlinePaint.strokeWidth = 6f
-            })
+        val places = located.mapNotNull { it.placeName?.trim()?.takeIf(String::isNotEmpty) }.distinct().size
+        binding.mapSummaryText.text = if (located.isEmpty()) {
+            getString(R.string.map_empty_short)
+        } else {
+            getString(R.string.map_summary, located.size, places)
         }
 
-        located.forEachIndexed { index, clip ->
-            val point = GeoPoint(clip.latitude!!, clip.longitude!!)
-            binding.mapView.overlays.add(Marker(binding.mapView).apply {
-                position = point
-                title = clip.placeName ?: getString(R.string.map_point_number, index + 1)
-                snippet = formatTime(clip.capturedAt)
-                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                setOnMarkerClickListener { _, _ ->
-                    playMoment(clip)
-                    showInfoWindow()
-                    true
-                }
-            })
+        if (mapClip == null || mapClip?.latitude == null || mapClip?.longitude == null) {
+            mapClip = located.firstOrNull()
         }
-        binding.mapView.overlays.add(CopyrightOverlay(this))
-
-        binding.mapView.post {
-            if (points.size == 1) {
-                binding.mapView.controller.setCenter(points.first())
-                binding.mapView.controller.setZoom(17.0)
-            } else {
-                binding.mapView.zoomToBoundingBox(BoundingBox.fromGeoPoints(points), true, 70)
-            }
-            binding.mapView.invalidate()
-        }
+        updateMapButton()
     }
 
     private fun playMoment(clip: ClipEntity) {
         val file = File(clip.path)
         if (!file.exists()) return
         previewClip = clip
+        if (clip.latitude != null && clip.longitude != null) mapClip = clip
         playFile(file)
         updatePreviewOverlay(clip)
+        updateMapButton()
     }
 
     private fun playFinal() {
@@ -214,6 +185,26 @@ class DayActivity : ComponentActivity() {
             OverlayMode.PLACE -> place ?: time
             OverlayMode.COORDINATES -> coordinates ?: time
             OverlayMode.NONE -> ""
+        }
+    }
+
+    private fun openSelectedPoint() {
+        val clip = mapClip ?: return
+        val lat = clip.latitude ?: return
+        val lon = clip.longitude ?: return
+        if (!MapLauncher.open(this, lat, lon, clip.placeName)) {
+            Toast.makeText(this, R.string.map_open_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun updateMapButton() {
+        val clip = mapClip
+        val enabled = clip?.latitude != null && clip.longitude != null
+        binding.openMapButton.isEnabled = enabled
+        binding.openMapButton.text = if (enabled && !clip?.placeName.isNullOrBlank()) {
+            getString(R.string.open_place_in_maps, clip?.placeName)
+        } else {
+            getString(R.string.open_in_maps)
         }
     }
 
@@ -264,16 +255,6 @@ class DayActivity : ComponentActivity() {
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }, getString(R.string.share_memory)))
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (::binding.isInitialized) binding.mapView.onResume()
-    }
-
-    override fun onPause() {
-        if (::binding.isInitialized) binding.mapView.onPause()
-        super.onPause()
     }
 
     override fun onDestroy() {
