@@ -27,35 +27,25 @@
     <string name="build_failed">Не удалось собрать ролик</string>
     <string name="video_placeholder">Ролик не собран</string>
     <string name="back">Назад</string>
+
     <string name="notification_channel_name">История дня</string>
     <string name="notification_channel_description">Напоминания о короткой записи</string>
     <string name="notification_title">Снять 2 секунды</string>
-    <string name="notification_text">Нажмите, чтобы начать запись</string>
+    <string name="notification_text">Нажмите, чтобы сразу сохранить момент</string>
+    <string name="notification_snooze">Через 10 минут</string>
+    <string name="notification_skip">Пропустить</string>
 
-    <string name="poi_notification_channel_name">Интересные места</string>
-    <string name="poi_notification_channel_description">Предложения снять момент рядом с достопримечательностями</string>
-    <string name="poi_notification_title">Рядом: %1$s</string>
-    <string name="poi_notification_text">Можно сохранить этот момент дня</string>
-    <string name="poi_notification_big_text">Вы рядом с «%1$s». Нажмите, чтобы сразу снять 2 секунды для истории дня.</string>
-    <string name="poi_card_title">Места истории</string>
-    <string name="poi_card_hint">Уведомлять у Кремля, музеев, площадей, парков, памятников и других интересных OSM-точек.</string>
-    <string name="poi_enable">Включить места</string>
-    <string name="poi_disable">Выключить</string>
-    <string name="poi_status_off">Выключено</string>
-    <string name="poi_status_need_location">Нужна точная геолокация</string>
-    <string name="poi_status_need_background">Нужно разрешить геолокацию «Всегда»</string>
-    <string name="poi_status_on">Включено · %1$d точек рядом</string>
-    <string name="poi_background_title">Разрешите геолокацию в фоне</string>
-    <string name="poi_background_message">Это нужно только для функции «Места истории»: Android сможет прислать уведомление, когда вы задержитесь рядом с достопримечательностью. На Android 11+ выберите для геолокации приложения вариант «Разрешить всегда».</string>
-    <string name="open_settings">Открыть настройки</string>
-    <string name="cancel">Отмена</string>
-
-    <string name="map_title">Точки дня</string>
+    <string name="map_title">География дня</string>
     <string name="map_empty">У этого дня пока нет геометок. Новые моменты сохраняют точку съёмки, если доступ к геолокации разрешён.</string>
+    <string name="map_empty_short">Без геометок — приложение продолжает работать полностью.</string>
+    <string name="map_summary">%1$d точек · %2$d сохранённых мест</string>
+    <string name="map_route_description">Схема точек дня без загрузки онлайн-карты</string>
+    <string name="open_in_maps">Открыть точку в картах</string>
+    <string name="open_place_in_maps">Открыть «%1$s» в картах</string>
+    <string name="map_open_failed">На устройстве не найдено приложение для карт</string>
     <string name="timeline_title">Хронология дня</string>
-    <string name="timeline_hint">Нажмите на момент, чтобы посмотреть именно этот фрагмент.</string>
-    <string name="map_point">Точка на карте</string>
-    <string name="map_point_number">Точка %1$d</string>
+    <string name="timeline_hint">Нажмите на момент, чтобы посмотреть его и выбрать его геоточку.</string>
+    <string name="map_point">Точка съёмки</string>
     <string name="no_location">Без геометки</string>
     <string name="location_not_saved">Место не сохранено</string>
     <string name="day_summary">%1$d моментов · %2$d мест · %3$d с геометкой</string>
@@ -66,10 +56,9 @@
     <string name="overlay_time_place">Время + место</string>
     <string name="overlay_time">Время</string>
     <string name="overlay_place">Место</string>
-    <string name="overlay_gps">GPS</string>
+    <string name="overlay_gps">Координаты</string>
     <string name="overlay_none">Без подписи</string>
     <string name="moments_strip_title">Шкала моментов</string>
-    <string name="moment_selected">Выбран момент %1$s</string>
 
     <plurals name="short_moments">
         <item quantity="one">%d фрагмент</item>
