@@ -40,18 +40,13 @@ object ReminderScheduler {
         }
 
         val randomMinute = Random.nextInt(4, 56)
-        val triggerAt = targetHour.withMinute(randomMinute).toInstant().toEpochMilli()
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit()
-            .putLong(NEXT_TRIGGER, triggerAt)
-            .apply()
+        scheduleAt(context, targetHour.withMinute(randomMinute).toInstant().toEpochMilli())
+    }
 
-        val alarmManager = context.getSystemService(AlarmManager::class.java)
-        alarmManager.setAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            triggerAt,
-            receiverPendingIntent(context),
-        )
+    fun scheduleAfter(context: Context, minutes: Int) {
+        if (!isEnabled(context)) return
+        val delay = minutes.coerceAtLeast(1) * 60_000L
+        scheduleAt(context, System.currentTimeMillis() + delay)
     }
 
     fun cancel(context: Context) {
@@ -60,6 +55,19 @@ object ReminderScheduler {
             .edit()
             .remove(NEXT_TRIGGER)
             .apply()
+    }
+
+    private fun scheduleAt(context: Context, triggerAt: Long) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putLong(NEXT_TRIGGER, triggerAt)
+            .apply()
+
+        context.getSystemService(AlarmManager::class.java).setAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            triggerAt,
+            receiverPendingIntent(context),
+        )
     }
 
     private fun receiverPendingIntent(context: Context): PendingIntent =
